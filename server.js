@@ -62,4 +62,4 @@ app.all('*', (req, res) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log(`Server rinning :) on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running :) on port ${PORT}`));

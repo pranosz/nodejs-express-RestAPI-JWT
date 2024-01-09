@@ -4,7 +4,7 @@ const usersDB = {
 }
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
+const accessTokenOpt = require('../config/accessTokenOptions');
 
 const handleRefreshToken = (req, res) => {
     const cookies = req.cookies;
@@ -29,11 +29,17 @@ const handleRefreshToken = (req, res) => {
             if(err || fUser.username != decoded.username) {
                 return res.sendStatus(403);
             }
+            const roles = Object.values(fUser.roles);
 
             const accessToken = jwt.sign(
-                {"username": decoded.username},
+                { 
+                    "UserInfo": {
+                        "username": fUser.username,
+                        "roles": roles
+                    }
+                },
                 process.env.ACCESS_TOKEN_SECRET,
-                {expiresIn: '40s'}
+                {expiresIn: accessTokenOpt.expiredTime}
             );
 
             res.json({ accessToken });

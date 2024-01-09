@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const fsPromises = require('fs').promises;
 const path = require('path');
+const accessTokenOpt = require('../config/accessTokenOptions');
 
 const handleLogin = async (req, res) => {
     const { user, pwd } = req.body;
@@ -24,11 +25,17 @@ const handleLogin = async (req, res) => {
     const match = await bcrypt.compare(pwd, fUser.password);
 
     if(match) {
+        const roles = Object.values(fUser.roles);
         // JWT
         const accessToken = jwt.sign(
-            {"username": fUser.username},
+            { 
+                "UserInfo": {
+                    "username": fUser.username,
+                    "roles": roles
+                }
+            },
             process.env.ACCESS_TOKEN_SECRET,
-            {expiresIn: '40s'}
+            {expiresIn: accessTokenOpt.expiredTime}
         );
 
         const refreshToken = jwt.sign(
