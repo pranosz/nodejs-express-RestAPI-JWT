@@ -16,7 +16,7 @@ const createNewProduct = (req, res)=>{
             "name": req.body.name,
             "price": req.body.price
         }
-        data.setProducts([...data, newProduct]);
+        data.setProducts([...data.products, newProduct]);
     }
     res.json(newProduct)
 }
