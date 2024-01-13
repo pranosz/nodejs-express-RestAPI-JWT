@@ -12,7 +12,7 @@ const isUserExists = (req, res) => {
     let exists = false;
 
     if(req.body.name) {
-        exists = data.users.some(user => user.username === req.body.name);
+        exists = data.users.some(user => user.username.toLocaleLowerCase() === req.body.name.toLocaleLowerCase());
     }
     
     res.json({'exists': exists});
