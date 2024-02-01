@@ -1,10 +1,4 @@
-const usersDB = {
-    users: require('../data/users.json'),
-    setUser: function(users) { this.users = users }
-}
-
-const fsPromises = require('fs').promises;
-const path = require('path');
+const User = require('../data/User');
 const bcrypt = require('bcrypt');
 
 const handleNewUser = async (req, res) => {
@@ -13,7 +7,7 @@ const handleNewUser = async (req, res) => {
     if (!user || !pwd) {
         return res.status(400).json({'message': 'Username and password are empty.'});
     }
-    const duplicate = usersDB.users.find(u => u.username === user);
+    const duplicate = await User.findOne({username: user}).exec();
 
     if(duplicate) {
         return res.sendStatus(409);
@@ -23,17 +17,13 @@ const handleNewUser = async (req, res) => {
         // encrypt the password
         const hashedPwd = await bcrypt.hash(pwd, 10);
         // store new user
-        const newUser = {
+        const result = await User.create({
             "username": user, 
-            "password": hashedPwd,
-            "roles": {"Read": 2222}
-        };
-        usersDB.setUser([...usersDB.users, newUser]);
+            "password": hashedPwd
+        });
 
-        await fsPromises.writeFile(
-            path.join(__dirname, '..', 'data', 'users.json'),
-            JSON.stringify(usersDB.users)
-        );
+        console.log('new user (result) ', result);
+
         res.status(201).json({'success': `New user ${user} created!`});
     } catch (err) {
         res.status(500).json({'message': err.message});
