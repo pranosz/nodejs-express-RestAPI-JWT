@@ -7,7 +7,7 @@ const handleNewUser = async (req, res) => {
     if (!user || !pwd) {
         return res.status(400).json({'message': 'Username and password are empty.'});
     }
-    const duplicate = await User.findOne({username: user}).exec();
+    const duplicate = await User.findOne({username: user.toLocaleLowerCase()}).exec();
 
     if(duplicate) {
         return res.sendStatus(409);
@@ -18,7 +18,7 @@ const handleNewUser = async (req, res) => {
         const hashedPwd = await bcrypt.hash(pwd, 10);
         // store new user
         const result = await User.create({
-            "username": user, 
+            "username": user.toLocaleLowerCase(), 
             "password": hashedPwd
         });
 

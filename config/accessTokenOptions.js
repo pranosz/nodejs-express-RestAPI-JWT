@@ -1,5 +1,5 @@
 const accessTokenOpt = {
-    expiredTime: '10s'
+    expiredTime: '10000s'
 }
 
 module.exports = accessTokenOpt;

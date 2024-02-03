@@ -1,61 +1,73 @@
-const { v4: uuid } = require('uuid');
-const data = {
-    products: require('../data/products.json'),
-    setProducts: function(data) {this.products = data}
-};
+// const { v4: uuid } = require('uuid');
+const Product = require('../data/Product');
 
-const getAllProducts = (req, res) => {
-    res.json(data.products);
+const getAllProducts = async (req, res) => {
+    const products = await Product.find();
+
+    if(!products) {
+        res.status(204).json({'message': 'Noproducts found.'});
+    }
+
+    res.json(products);
 }
 
-const createNewProduct = (req, res)=>{
-    let newProduct = {};
-    if (req.body.name && req.body.price)  {
-        newProduct = {
-            "id": uuid(),
+const createNewProduct = async (req, res)=>{
+    if (!req?.body?.name || !req?.body?.price)  {
+        res.status(400).json({'message':'Name and price are required.'});
+    } 
+
+    try {
+        const newProduct = {
             "name": req.body.name,
             "price": req.body.price
         }
-        data.setProducts([...data.products, newProduct]);
+
+        await Product.create(newProduct);
+        res.status(201).json(newProduct);
+    } catch(err) {
+        console.error(err);
     }
-    res.json(newProduct)
 }
 
-const updateProduct = (req, res)=>{
+const updateProduct = async (req, res)=>{
     let message = `id dosen't exists`;
     if (req.body.id)  {
-        const index = data.products.findIndex(prod => prod.id === req.body.id);
-        if (index !== -1) {
-            data.products[index] = {
-                "id": req.body.id,
-                "name": req.body.name,
-                "price": req.body.price
-            };
-            res.status(201).json({"id": req.body.id})
+        console.log("id ", req.body.id);
+
+        const fProduct = await Product.findOne({_id: req.body.id}).exec();
+        console.log("fProduct ", fProduct);
+
+        if (fProduct) {
+            fProduct.name = req.body.name;
+            fProduct.name = req.body.price;
+
+            const result = await fProduct.save();
+
+            res.status(201).json({"product": result})
         }          
     }
     res.status(404).json({"message": message})
 }
 
-const deleteProduct = (req, res)=>{
+const deleteProduct = async (req, res)=>{
     let message = `id dosen't exists`;
     if (req.body.id)  {
-        const newArray = data.products.filter(prod => prod.id !== req.body.id);
-        data.setProducts([...newArray]);
-        res.json({"products": newArray})
+        await Product.findOneAndDelete({_id: req.body.id}).exec();
+        res.json({"id": req.body.id})
     }
     res.status(404).json({"message": message})
 }
 
-const getProduct = (req, res) => {
+const getProduct = async (req, res) => {
     let message = `id dosen't exists`;
     if (req.params.id)  {
-        const index = data.products.findIndex(prod => prod.id === req.params.id);
-        if (index !== -1) {
+        const fProduct = await Product.findOne({_id: req.params.id}).exec();
+        console.log("fProduct ", fProduct);
+        if (fProduct) {
             res.json({
-                "id": data.products[index].id,
-                "name": data.products[index].name,
-                "price": data.products[index].price
+                "id": fProduct._id,
+                "name": fProduct.name,
+                "price": fProduct.price
             })
         }          
     }

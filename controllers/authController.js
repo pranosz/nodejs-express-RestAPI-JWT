@@ -1,11 +1,7 @@
-const usersDB = {
-    users: require('../data/users.json'),
-    setUser: function(users) { this.users = users }
-}
+const User = require('../data/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const fsPromises = require('fs').promises;
-const path = require('path');
+
 const accessTokenOpt = require('../config/accessTokenOptions');
 
 const handleLogin = async (req, res) => {
@@ -15,7 +11,7 @@ const handleLogin = async (req, res) => {
         return res.status(400).json({'message': 'Username and password are empty.'});
     }
 
-    const fUser = usersDB.users.find(u => u.username === user);
+    const fUser = await User.findOne({username: user}).exec();
 
     if(!fUser) {
         return res.sendStatus(401);
@@ -44,14 +40,14 @@ const handleLogin = async (req, res) => {
         );
 
         // Saving refreshToken with current user
-        const otherUsers = usersDB.users.filter(u => u.username !== fUser.username);
-        const currentUser = {...fUser, refreshToken};
-        usersDB.setUser([...otherUsers, currentUser]);
+        await fUser.updateOne({refreshToken}).exec();
+        /*
+        // Alternative way of updating refreshToken
 
-        await fsPromises.writeFile(
-            path.join(__dirname, '..', 'data', 'users.json'),
-            JSON.stringify(usersDB.users)
-        );
+        fUser.refreshToken = '';
+        const result = await fUser.save();
+        */
+
         res.cookie('jwt', refreshToken, {httpOnly: true, sameSite: 'None', secure: true, maxAge: 24* 60 * 60 * 1000});
         res.json({accessToken});
     } else {
